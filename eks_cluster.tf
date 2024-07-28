@@ -40,25 +40,25 @@ resource "aws_eks_addon" "vpc_cni" {
   cluster_name      = aws_eks_cluster.eks.name
   addon_name        = "vpc-cni"
   addon_version     = "v1.16.0-eksbuild.1" # Verifique e use a versão mais recente disponível
-  resolve_conflicts = "OVERWRITE"
+  resolve_conflicts_on_create = "OVERWRITE"
 }
 resource "aws_eks_addon" "kube_proxy" {
   cluster_name      = aws_eks_cluster.eks.name
   addon_name        = "kube-proxy"
   addon_version     = "v1.29.0-eksbuild.1" # Verifique e use a versão mais recente disponível
-  resolve_conflicts = "OVERWRITE"
+  resolve_conflicts_on_create = "OVERWRITE"
 }
 
 resource "aws_eks_addon" "core_dns" {
   cluster_name      = aws_eks_cluster.eks.name
   addon_name        = "coredns"
   addon_version     = "v1.11.1-eksbuild.9" # Verifique e use a versão mais recente disponível
-  resolve_conflicts = "OVERWRITE"
+  resolve_conflicts_on_create = "OVERWRITE"
 }
 
 resource "aws_eks_addon" "ebs_csi_driver" {
   cluster_name      = aws_eks_cluster.eks.name
   addon_name        = "aws-ebs-csi-driver"
   addon_version     = "v1.32.0-eksbuild.1"
-  resolve_conflicts = "OVERWRITE"
+  resolve_conflicts_on_create = "OVERWRITE"
 }
