@@ -1,0 +1,99 @@
+sidecars:
+- name: filebeat
+  image: docker.elastic.co/beats/filebeat:7.15.2
+  volumeMounts:
+    - name: filebeat-config
+      mountPath: /usr/share/filebeat/filebeat.yml
+      subPath: filebeat.yml
+    - name: empty-dir
+      mountPath: /var/log/apache-logs-dir
+      subPath: apache-logs-dir
+  
+
+initContainers:
+- name: fix-logs
+  image: docker.io/bitnami/wordpress:6.6.0-debian-12-r4
+  imagePullPolicy: IfNotPresent
+  args:
+  - -ec
+  - |
+    #!/bin/bash
+    echo 'Removing apache symlinks...'
+    [[ -L /opt/bitnami/apache/logs/access_log ]] && \
+      rm /opt/bitnami/apache/logs/access_log || \
+      echo 'Error while removing access_log';
+    [[ -L /opt/bitnami/apache/logs/error_log  ]] && \
+      rm /opt/bitnami/apache/logs/error_log || \
+      echo 'Error while removing error_log'
+ 
+    echo 'Creating apache log files...';
+    [[ -f /opt/bitnami/apache/logs/access_log ]] && \
+      echo "Hardlink access_log already exist" || \
+      touch /opt/bitnami/apache/logs/access_log;
+    [[ -f /opt/bitnami/apache/logs/error_log  ]] &&
+      echo "Hardlink error_log already exist" || \
+      touch /opt/bitnami/apache/logs/error_log;
+
+    echo 'Removing mount symlinks...'
+    [[ -L /emptydir/apache-logs-dir/access_log ]] && \
+      rm /emptydir/apache-logs-dir/access_log || \
+      echo 'Error while removing access_log';
+    [[ -L /emptydir/apache-logs-dir/error_log  ]] && \
+      rm /emptydir/apache-logs-dir/error_log || \
+      echo 'Error while removing error_log'
+
+    echo 'Creating mount log files...';
+    [[ -f /emptydir/apache-logs-dir/access_log ]] && \
+      echo "Hardlink access_log already exist" || \
+      touch /emptydir/apache-logs-dir/access_log;
+    [[ -f /emptydir/apache-logs-dir/error_log  ]] &&
+      echo "Hardlink error_log already exist" || \
+      touch /emptydir/apache-logs-dir/error_log;
+    echo 'Success'
+  command:
+  - /bin/bash
+  volumeMounts:
+  - mountPath: /emptydir
+    name: empty-dir
+
+
+extraVolumes:
+- name: filebeat-config
+  configMap:
+    name: filebeat-config
+
+
+persistence:
+  enabled: false
+
+ 
+wordpressUsername: "padrao"
+  
+wordpressPassword: "pabareda123"
+
+autoscaling:
+  enabled: true
+  maxReplicas: 4
+  minReplicas: 2
+  targetCPU: 60
+  targetMemory: 50
+
+image:
+  debug: true
+
+mariadb:
+  enabled: false
+
+externalDatabase:
+  host: ${rds_endpoint}
+  port: 3306
+  user: ${rds_username}
+  password: ${rds_password}
+  database: ${rds_database}
+
+
+ingress: 
+  enabled: true
+  pathType: Prefix
+  hostname: "*.traefik.me"
+  ingressClassName: "aws-alb"

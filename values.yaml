@@ -1,0 +1,11 @@
+global:
+  imagePullSecrets:
+    - name: <your-image-pull-secret>
+  authentication:
+    apiVersion: client.authentication.k8s.io/v1beta1
+    config:
+      clientId: <your-client-id>
+      clientSecret: <your-client-secret>
+      idToken: <your-id-token>
+      idpIssuerUrl: https://<your-idp-issuer-url>
+      refreshToken: <your-refresh-token>
